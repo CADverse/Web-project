@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, Printer, BarChart3, CheckCircle, MessageCircle } from 'lucide-react';
-import { apiPostFormData } from '../utils/api';
-import { API_ENDPOINTS, SERVICE_TYPE_MAPPING } from '../config/api';
 
 interface ServiceCardProps {
   title: string;
@@ -62,161 +60,47 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   const handleSubmit = () => {
     if (!uploadedFile || isSubmitting) return;
     
-    submitFileToBackend(uploadedFile);
+    // Simulate file submission (frontend-only)
+    simulateFileSubmission(uploadedFile);
   };
 
-  /**
-   * Submit uploaded file to backend API
-   * Handles the complete file upload process with proper error handling
-   */
-  const submitFileToBackend = async (file: File) => {
+  // Simulate file submission without backend
+  const simulateFileSubmission = async (file: File) => {
     if (!file) return;
     
     setIsSubmitting(true);
     
-    try {
-      // Determine service type based on title
-      const serviceType = SERVICE_TYPE_MAPPING[title as keyof typeof SERVICE_TYPE_MAPPING];
-      
-      if (!serviceType) {
-        throw new Error(`Invalid service type: ${title}`);
-      }
-      
-      console.log(`📁 Starting file upload process:`);
-      console.log(`🎯 Service mapping:`, {
-        frontendTitle: title,
-        backendServiceType: serviceType,
-        expectedGoogleDriveFolder: serviceType === '2d-to-3d' 
-          ? 'Uploaded Projects/2D to 3D sketches' 
-          : 'Uploaded Projects/3D Printing Services'
-      });
-      
-      console.log(`📄 File upload details:`, {
-        name: file.name,
-        size: file.size,
-        sizeInMB: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-        mimeType: file.type,
-        lastModified: new Date(file.lastModified).toISOString()
-      });
-      
-      // Create FormData for file upload
-      // This ensures proper multipart/form-data encoding
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Additional debugging for FormData
-      console.log('📦 FormData preparation:', {
-        hasFile: formData.has('file'),
-        formDataEntries: Array.from(formData.entries()).length,
-        targetEndpoint: API_ENDPOINTS.upload(serviceType),
-        httpMethod: 'POST'
-      });
-      
-      // Make API call to upload endpoint
-      // Uses the correct endpoint format: /api/upload/{serviceType}
-      console.log(`🚀 Making API call to: ${API_ENDPOINTS.upload(serviceType)}`);
-      
-      const response = await apiPostFormData(
-        API_ENDPOINTS.upload(serviceType),
-        formData
-      );
-      
-      console.log('📥 Backend upload response:', {
-        success: response.success,
-        message: response.message,
-        fileName: response.fileName,
-        fileId: response.fileId,
-        serviceType: response.serviceType
-      });
-      
-      // Handle successful upload
-      if (response.success) {
-        setUploadSuccess(true);
-        console.log('✅ File upload completed successfully:', {
-          fileName: response.fileName || file.name,
-          backendServiceType: serviceType,
-          googleDriveFileId: response.fileId,
-          uploadedToFolder: serviceType === '2d-to-3d' 
-            ? 'Uploaded Projects/2D to 3D sketches' 
-            : 'Uploaded Projects/3D Printing Services'
-        });
-        
-        // Show success message via parent component if available
-        if (onFileUpload) {
-          onFileUpload(file);
-        }
-      } else {
-        throw new Error(response.error || response.message || 'Upload failed - no error details provided');
-      }
-    } catch (error: any) {
-      console.error('❌ File upload failed:', error);
-      
-      // Provide more specific error messages
-      let errorMessage = 'Upload failed';
-      if (error.status === 0) {
-        errorMessage = 'Cannot connect to server. Please check your internet connection.';
-      } else if (error.status === 400) {
-        errorMessage = error.message || 'Invalid file or request format';
-      } else if (error.status === 413) {
-        errorMessage = 'File is too large. Maximum size is 10MB.';
-      } else if (error.status === 415) {
-        errorMessage = 'Unsupported file type for this service.';
-      } else if (error.status >= 500) {
-        errorMessage = 'Server error. Please try again later.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      // Reset upload state on error
-      console.log('🔄 Resetting upload state due to error:', {
-        originalFile: file.name,
-        errorMessage: errorMessage,
-        errorStatus: error.status
-      });
-      
-      setUploadedFile(null);
-      setUploadSuccess(false);
-      
-      // Show error message via parent component if available
-      if (onFileUpload) {
-        // Create a mock file with error info for parent to handle
-        const errorFile = new File([''], 'error', { type: 'error' });
-        (errorFile as any).error = errorMessage;
-        onFileUpload(errorFile);
-      }
-    } finally {
-      setIsSubmitting(false);
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Log file details for development purposes
+    console.log('📁 File submitted (frontend-only):', {
+      name: file.name,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      type: file.type,
+      service: title,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Simulate successful upload
+    setUploadSuccess(true);
+    
+    // Notify parent component if available
+    if (onFileUpload) {
+      onFileUpload(file);
     }
+    
+    setIsSubmitting(false);
   };
 
-  /**
-   * Handle file selection and basic validation
-   */
+  // Handle file selection and basic validation (frontend-only)
   const processSelectedFile = (file: File) => {
     // Reset previous states
     setUploadSuccess(false);
     
-    console.log('📁 Processing selected file:', {
-      name: file.name,
-      size: file.size,
-      sizeInMB: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-      type: file.type,
-      lastModified: new Date(file.lastModified).toISOString(),
-      maxAllowedSize: '10 MB',
-      isWithinLimit: file.size <= (10 * 1024 * 1024)
-    });
-    
     // File size validation - 10MB limit
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      console.error('❌ File size validation failed:', {
-        fileSize: file.size,
-        fileName: file.name,
-        maxSize: maxSize,
-        fileSizeInMB: (file.size / 1024 / 1024).toFixed(2),
-        maxSizeInMB: (maxSize / 1024 / 1024).toFixed(2),
-        exceedsLimit: file.size > maxSize
-      });
       if (onFileUpload) {
         const errorFile = new File([''], 'error', { type: 'error' });
         (errorFile as any).error = `File size (${(file.size / 1024 / 1024).toFixed(2)}MB) exceeds the 10MB limit`;
@@ -224,12 +108,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       }
       return;
     }
-    
-    console.log('✅ File size validation passed:', {
-      fileName: file.name,
-      actualSize: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-      limit: '10 MB'
-    });
     
     // Validate file type based on service
     const allowedTypes = {
@@ -240,16 +118,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
     const serviceTypes = allowedTypes[title as keyof typeof allowedTypes];
     if (serviceTypes) {
       const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-      
-      console.log('🔍 File type validation check:', {
-        fileName: file.name,
-        detectedExtension: fileExtension,
-        allowedTypes: serviceTypes,
-        serviceTitle: title
-      });
-      
       if (!serviceTypes.includes(fileExtension)) {
-        console.error('❌ File type validation failed:', fileExtension);
         if (onFileUpload) {
           const errorFile = new File([''], 'error', { type: 'error' });
           (errorFile as any).error = `Invalid file type. Accepted: ${serviceTypes.join(', ')}`;
@@ -259,21 +128,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       }
     }
     
-    console.log('✅ File type validation passed:', {
-      fileName: file.name,
-      fileType: file.type
-    });
-    
     // File is valid, set it for upload
     setUploadedFile(file);
-    console.log('✅ File selected successfully:', {
-      name: file.name,
-      sizeBytes: file.size,
-      sizeMB: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-      mimeType: file.type,
-      fileExtension: '.' + file.name.split('.').pop()?.toLowerCase(),
-      serviceType: title
-    });
   };
   
   const scrollToContact = () => {

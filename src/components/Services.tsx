@@ -46,8 +46,7 @@ const Services: React.FC = () => {
   };
 
   const handleFileUpload = (file: File, serviceTitle: string) => {
-    // Handle file upload results from ServiceCard
-    // Check if this is an error file (created by ServiceCard for error handling)
+    // Handle file selection results from ServiceCard (frontend-only)
     if (file.type === 'error') {
       setToast({
         message: (file as any).error || 'Upload failed',
@@ -57,21 +56,9 @@ const Services: React.FC = () => {
       return;
     }
 
-    // Handle successful file selection
-    // Handle file upload results from ServiceCard
-    // Check if this is an error file (created by ServiceCard for error handling)
-    if (file.type === 'error') {
-      setToast({
-        message: (file as any).error || 'Upload failed',
-        type: 'error',
-        isVisible: true,
-      });
-      return;
-    }
-
-    // Handle successful file selection
+    // Handle successful file selection (frontend-only)
     setToast({
-      message: `File "${file.name}" selected for ${serviceTitle}`,
+      message: `File "${file.name}" submitted for ${serviceTitle}`,
       type: 'success',
       isVisible: true,
     });
